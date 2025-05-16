@@ -5,7 +5,7 @@ import io
 
 app = Flask(__name__)
 
-# Load YOLOv8 model
+# Load YOLOv11 model
 model = YOLO('model/kebersihan-yolov11n-v5.pt')  # path relative to project root
 
 # Class label mapping
@@ -27,7 +27,7 @@ def predict():
     image_file = request.files['image']
     image = Image.open(io.BytesIO(image_file.read())).convert('RGB')
 
-    results = model.predict(image, verbose=False)
+    results = model.predict(image, verbose=False, classes=[0, 1, 2, 3, 4, 5, 9])
     result = results[0]
 
     detections_list = []
@@ -66,9 +66,49 @@ def predict():
 
     return jsonify(response)
 
+@app.route('/tegangan', methods=['POST'])
+def predict_tegangan():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image uploaded'}), 400
+
+    image_file = request.files['image']
+    image = Image.open(io.BytesIO(image_file.read())).convert('RGB')
+
+  
+    results = model.predict(image, classes=[6], verbose=False)
+    result = results[0]
+
+    detections_list = []
+    boxes = result.boxes
+    class_names = model.names
+
+    for box in boxes:
+        class_id = int(box.cls[0])
+        confidence = float(box.conf[0])
+        class_name = class_names[class_id]
+        
+        xyxy = box.xyxy[0].tolist()
+        bbox = [round(coord, 2) for coord in xyxy]
+
+        detections_list.append({
+            "class": class_name,
+            "confidence": round(confidence, 3),
+            "bbox": bbox
+        })
+
+    response = {
+        "type": "tegangan",
+        "output": {
+            "detections": detections_list,
+            "count": len(detections_list)
+        }
+    }
+
+    return jsonify(response)
+
 @app.route('/')
 def home():
-    return "Kebersihan is running."
+    return "Kebersihan and Tegangan is running."
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
