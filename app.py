@@ -78,7 +78,7 @@ def predict():
         })
 
     # Determine overall classification based on combined total
-    combined_classification = "unclean" if total_found_combined > 5 else "clean"
+    combined_classification = "unclean" if total_found_combined >= 5 else "clean"
 
     # Mapping each class to a recommendation
     recommendation_map = {
