@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: flask-yolo-app
-    env: python
-    buildCommand: ""
-    startCommand: python app.py
-    plan: free
-    region: singapore
